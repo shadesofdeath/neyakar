@@ -389,6 +389,40 @@ input:focus, select:focus {
 .dot-fuel { background: var(--primary); }
 .dot-toll { background: var(--accent); }
 
+/* ---------- Reklam alanları ---------- */
+.ad-slot {
+  display: block;
+  max-width: 1080px;
+  margin: 0 auto 24px;
+  padding: 10px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow);
+  text-align: center;
+  overflow: hidden;
+}
+.ad-slot .ad-label {
+  display: block;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin-bottom: 6px;
+}
+.ad-slot .adsbygoogle {
+  display: block;
+  min-height: 90px;
+}
+/* Reklam yüklenmediyse (yayıncı kimliği ayarlı değilse) boş kutuyu gizle */
+.ad-slot .adsbygoogle:not([data-ad-status="filled"]):empty {
+  min-height: 0;
+}
+.ad-slot:not(:has([data-ad-status="filled"])) {
+  display: none;
+}
+
 /* ---------- Footer ---------- */
 .footer {
   max-width: 1080px;
