@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>NeYakar — Yol Maliyeti Hesaplama</title>
+  <meta name="description" content="Şehirler arası yolculuğun yakıt, otoyol (HGS/OGS) ve köprü maliyetini anında hesapla. Benzin, dizel, LPG ve elektrikli araçlar için toplam ve kişi başı maliyet." />
+  <meta name="theme-color" content="#0ea5e9" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⛽</text></svg>" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <span class="brand-logo" aria-hidden="true">⛽</span>
+      <div class="brand-text">
+        <span class="brand-name">NeYakar</span>
+        <span class="brand-tag">Yol maliyeti hesaplama</span>
+      </div>
+    </div>
+    <button id="themeToggle" class="theme-toggle" type="button" aria-label="Tema değiştir" title="Tema değiştir">
+      <span class="theme-icon">🌙</span>
+    </button>
+  </header>
+
+  <main class="container">
+    <section class="hero">
+      <h1>Yolculuğun sana <span class="grad">ne yakar?</span></h1>
+      <p class="hero-sub">Yakıt, otoyol (HGS/OGS) ve köprü ücretlerini tek ekranda hesapla. Şehir seç, gerisini bırak.</p>
+    </section>
+
+    <div class="layout">
+      <!-- FORM -->
+      <form id="calcForm" class="card form-card" autocomplete="off" novalidate>
+        <!-- Mesafe modu -->
+        <div class="field-group">
+          <div class="group-head">
+            <span class="group-icon">📍</span>
+            <h2>Mesafe</h2>
+          </div>
+
+          <div class="seg" role="tablist" aria-label="Mesafe modu">
+            <button type="button" class="seg-btn active" data-mode="cities" role="tab" aria-selected="true">Şehirler arası</button>
+            <button type="button" class="seg-btn" data-mode="manual" role="tab" aria-selected="false">Manuel</button>
+          </div>
+
+          <div id="citiesMode" class="mode-panel">
+            <div class="row">
+              <label class="field">
+                <span>Nereden</span>
+                <select id="fromCity"></select>
+              </label>
+              <button type="button" id="swapCities" class="swap-btn" aria-label="Şehirleri değiştir" title="Şehirleri değiştir">⇄</button>
+              <label class="field">
+                <span>Nereye</span>
+                <select id="toCity"></select>
+              </label>
+            </div>
+            <p id="autoDistanceNote" class="hint"></p>
+          </div>
+
+          <div id="manualMode" class="mode-panel hidden">
+            <label class="field">
+              <span>Mesafe (km)</span>
+              <input id="manualDistance" type="number" inputmode="decimal" min="0" step="1" placeholder="örn. 450" />
+            </label>
+          </div>
+
+          <label class="check">
+            <input id="roundTrip" type="checkbox" />
+            <span>Gidiş-dönüş (mesafe ×2)</span>
+          </label>
+        </div>
+
+        <!-- Yakıt -->
+        <div class="field-group">
+          <div class="group-head">
+            <span class="group-icon">🚗</span>
+            <h2>Yakıt</h2>
+          </div>
+
+          <div class="fuel-tabs" id="fuelTabs" role="tablist" aria-label="Yakıt türü">
+            <button type="button" class="fuel-tab active" data-fuel="benzin">⛽ Benzin</button>
+            <button type="button" class="fuel-tab" data-fuel="dizel">🛢️ Dizel</button>
+            <button type="button" class="fuel-tab" data-fuel="lpg">💨 LPG</button>
+            <button type="button" class="fuel-tab" data-fuel="elektrik">⚡ Elektrik</button>
+          </div>
+
+          <div class="row">
+            <label class="field">
+              <span id="consumptionLabel">Tüketim (L/100 km)</span>
+              <input id="consumption" type="number" inputmode="decimal" min="0" step="0.1" placeholder="örn. 7.5" />
+            </label>
+            <label class="field">
+              <span id="priceLabel">Yakıt fiyatı (₺/L)</span>
+              <input id="fuelPrice" type="number" inputmode="decimal" min="0" step="0.01" placeholder="örn. 43.50" />
+            </label>
+          </div>
+          <p class="hint">Fiyatlar tahmini varsayılan olarak dolduruldu; güncel değerleri girebilirsin.</p>
+        </div>
+
+        <!-- Yol masrafları -->
+        <div class="field-group">
+          <div class="group-head">
+            <span class="group-icon">🛣️</span>
+            <h2>Yol masrafları</h2>
+          </div>
+          <div class="row">
+            <label class="field">
+              <span>Otoyol / HGS-OGS (₺)</span>
+              <input id="tollCost" type="number" inputmode="decimal" min="0" step="0.5" placeholder="0" />
+            </label>
+            <label class="field">
+              <span>Köprü (₺)</span>
+              <input id="bridgeCost" type="number" inputmode="decimal" min="0" step="0.5" placeholder="0" />
+            </label>
+          </div>
+          <p id="tollHint" class="hint"></p>
+        </div>
+
+        <!-- Kişi -->
+        <div class="field-group">
+          <div class="group-head">
+            <span class="group-icon">👥</span>
+            <h2>Kişi sayısı</h2>
+          </div>
+          <label class="field">
+            <span>Maliyeti kaç kişi paylaşacak?</span>
+            <div class="stepper">
+              <button type="button" id="personMinus" class="step-btn" aria-label="Azalt">−</button>
+              <input id="persons" type="number" inputmode="numeric" min="1" step="1" value="1" />
+              <button type="button" id="personPlus" class="step-btn" aria-label="Artır">+</button>
+            </div>
+          </label>
+        </div>
+
+        <div class="form-actions">
+          <button type="submit" class="btn-primary">Hesapla</button>
+          <button type="button" id="resetBtn" class="btn-ghost">Sıfırla</button>
+        </div>
+      </form>
+
+      <!-- SONUÇ -->
+      <aside class="card result-card" id="resultCard" aria-live="polite">
+        <div id="resultEmpty" class="result-empty">
+          <div class="empty-emoji">🧮</div>
+          <p>Bilgileri doldur ve <strong>Hesapla</strong>'ya bas.<br />Sonuçlar burada görünecek.</p>
+        </div>
+
+        <div id="resultContent" class="result-content hidden">
+          <div class="result-total">
+            <span class="result-total-label">Toplam maliyet</span>
+            <span class="result-total-value" id="rTotal">₺0</span>
+            <span class="result-total-sub" id="rRouteLabel"></span>
+          </div>
+
+          <div class="result-grid">
+            <div class="rstat">
+              <span class="rstat-label">Toplam mesafe</span>
+              <span class="rstat-value" id="rDistance">0 km</span>
+            </div>
+            <div class="rstat">
+              <span class="rstat-label">Yakıt maliyeti</span>
+              <span class="rstat-value" id="rFuel">₺0</span>
+            </div>
+            <div class="rstat">
+              <span class="rstat-label">HGS/OGS + Köprü</span>
+              <span class="rstat-value" id="rToll">₺0</span>
+            </div>
+            <div class="rstat">
+              <span class="rstat-label">Km başına maliyet</span>
+              <span class="rstat-value" id="rPerKm">₺0</span>
+            </div>
+          </div>
+
+          <div class="result-breakdown">
+            <div class="bd-row">
+              <span>Yakıt tüketimi</span>
+              <span id="rFuelUsed">0</span>
+            </div>
+            <div class="bd-row">
+              <span>Yol ücretleri (HGS/OGS + köprü)</span>
+              <span id="rTollDetail">₺0</span>
+            </div>
+            <div class="bd-row bd-highlight" id="rPerPersonRow">
+              <span>Kişi başı maliyet</span>
+              <span id="rPerPerson">₺0</span>
+            </div>
+          </div>
+
+          <div class="result-bar" aria-hidden="true">
+            <div class="bar-seg bar-fuel" id="barFuel" title="Yakıt"></div>
+            <div class="bar-seg bar-toll" id="barToll" title="Yol ücretleri"></div>
+          </div>
+          <div class="result-legend" aria-hidden="true">
+            <span><i class="dot dot-fuel"></i> Yakıt <b id="pctFuel">0%</b></span>
+            <span><i class="dot dot-toll"></i> Yol ücretleri <b id="pctToll">0%</b></span>
+          </div>
+        </div>
+      </aside>
+    </div>
+  </main>
+
+  <footer class="footer">
+    <p>NeYakar · Tüm hesaplamalar tahminidir, güncel fiyat ve ücretleri kontrol edin.</p>
+  </footer>
+
+  <script src="cities.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
