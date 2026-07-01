@@ -3,6 +3,7 @@
 /* ---------- Yardımcılar ---------- */
 const $ = (id) => document.getElementById(id);
 const ROAD_FACTOR = 1.27; // kuş uçuşu -> tahmini karayolu mesafesi katsayısı
+const FUEL_LABELS = { benzin: "Benzin", dizel: "Dizel", lpg: "LPG", elektrik: "Elektrik" };
 
 const fmtTRY = (n) =>
   new Intl.NumberFormat("tr-TR", {
@@ -220,8 +221,43 @@ function renderResult(r) {
   $("pctFuel").textContent = `${fmtNum(fuelPct)}%`;
   $("pctToll").textContent = `${fmtNum(tollPct)}%`;
 
+  // Yakıt türü karşılaştırması
+  renderFuelCompare(r.distance);
+
   // Paylaşım verisi + adres çubuğu
   updateShare(r);
+}
+
+/** Aynı mesafe için tüm yakıt türlerinin tahmini maliyetini karşılaştır. */
+function renderFuelCompare(distance) {
+  const order = ["benzin", "dizel", "lpg", "elektrik"];
+  const userCons = parseFloat($("consumption").value);
+  const userPrice = parseFloat($("fuelPrice").value);
+
+  const rows = order.map((f) => {
+    const d = FUEL_DEFAULTS[f];
+    const cons = f === state.fuel && isFinite(userCons) ? userCons : d.consumption;
+    const price = f === state.fuel && isFinite(userPrice) ? userPrice : d.price;
+    return { f, cons, price, unit: d.unit, cost: ((distance * cons) / 100) * price, current: f === state.fuel };
+  });
+
+  const min = Math.min(...rows.map((r) => r.cost));
+  $("fcList").innerHTML = rows
+    .sort((a, b) => a.cost - b.cost)
+    .map((r) => {
+      const cheapest = r.cost === min;
+      return (
+        `<div class="fc-row${r.current ? " fc-current" : ""}${cheapest ? " fc-cheap" : ""}">` +
+        `<span class="fc-name">${FUEL_LABELS[r.f]}` +
+        (r.current ? ` <em>seçili</em>` : "") +
+        (cheapest ? ` <b class="fc-badge">En ucuz</b>` : "") +
+        `</span>` +
+        `<span class="fc-cons">${fmtNum(r.cons, 1)} ${r.unit}/100km</span>` +
+        `<span class="fc-cost">${fmtTRY(r.cost)}</span>` +
+        `</div>`
+      );
+    })
+    .join("");
 }
 
 /* ---------- Paylaşım & bağlantı ---------- */

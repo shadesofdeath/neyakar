@@ -26,6 +26,46 @@
   <script async
     src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-XXXXXXXXXXXXXXXX"
     crossorigin="anonymous"></script>
+
+  <!-- SSS yapılandırılmış verisi (Google zengin sonuç) — görünür SSS ile aynı -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+      {
+        "@type": "Question",
+        "name": "Mesafe hesaplaması ne kadar doğru?",
+        "acceptedAnswer": { "@type": "Answer", "text": "Şehir merkezlerinin koordinatları arasındaki kuş uçuşu mesafe, tahmini karayolu mesafesine yaklaştırmak için ~1,27 katsayısıyla çarpılır. Sonuç gerçek güzergâha göre değişebilir; kesin mesafe için harita servislerini kullanın ya da Manuel mesafe moduyla değeri kendiniz girin." }
+      },
+      {
+        "@type": "Question",
+        "name": "Yakıt fiyatları güncel mi?",
+        "acceptedAnswer": { "@type": "Answer", "text": "Alanlar tahmini varsayılan değerlerle dolu gelir. Yakıt fiyatları sık değiştiği için, en doğru sonucu almak üzere pompadaki güncel fiyatı girmenizi öneririz." }
+      },
+      {
+        "@type": "Question",
+        "name": "HGS/OGS ve köprü ücretlerini nasıl girerim?",
+        "acceptedAnswer": { "@type": "Answer", "text": "Bilinen bazı popüler rotalar için tahmini otoyol ve köprü ücretleri otomatik doldur bağlantısıyla önerilir. Diğer güzergâhlarda değerleri ilgili alanlara elle yazabilirsiniz. Boş bırakırsanız 0 kabul edilir." }
+      },
+      {
+        "@type": "Question",
+        "name": "Elektrikli araç için kullanabilir miyim?",
+        "acceptedAnswer": { "@type": "Answer", "text": "Evet. Elektrik sekmesini seçtiğinizde tüketim kWh/100 km, fiyat ise ₺/kWh olarak istenir. Hesaplama aynı mantıkla toplam şarj maliyetini verir." }
+      },
+      {
+        "@type": "Question",
+        "name": "Kişi başı maliyet nasıl hesaplanıyor?",
+        "acceptedAnswer": { "@type": "Answer", "text": "Toplam maliyet (yakıt + geçiş ücretleri), girdiğiniz yolcu sayısına bölünür. Birden fazla kişi seçtiğinizde sonuç ekranında kişi başı tutar ayrıca gösterilir." }
+      },
+      {
+        "@type": "Question",
+        "name": "Verilerim kaydediliyor mu?",
+        "acceptedAnswer": { "@type": "Answer", "text": "Hayır. Tüm hesaplamalar tarayıcınızda yapılır; girdiğiniz bilgiler bir sunucuya gönderilmez. Yalnızca tema tercihiniz tarayıcınızda saklanır." }
+      }
+    ]
+  }
+  </script>
 </head>
 <body>
   <!-- SVG ikon tanımları -->
@@ -264,6 +304,12 @@
                 <span>Kişi başı maliyet</span>
                 <span id="rPerPerson">₺0</span>
               </div>
+            </div>
+
+            <div class="fuel-compare">
+              <div class="fc-head">Yakıt türüne göre maliyet</div>
+              <div class="fc-list" id="fcList"></div>
+              <p class="fc-note">Aynı mesafe için tahmini yakıt maliyeti. Seçili tür sizin girdiğiniz değerlerle, diğerleri varsayılan tüketim ve fiyatlarla hesaplanır.</p>
             </div>
 
             <div class="result-share">
