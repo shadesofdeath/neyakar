@@ -176,11 +176,18 @@ function calculate() {
   });
 }
 
+const EMPTY_STATE_HTML =
+  `<span class="empty-icon"><svg class="icon" aria-hidden="true"><use href="#i-calc" /></svg></span>` +
+  `<p class="empty-title">Sonuçlar burada görünecek</p>` +
+  `<p class="empty-desc">Formu doldurup <strong>Maliyeti Hesapla</strong>'ya basın.</p>`;
+
 function showError(msg) {
   $("resultEmpty").classList.remove("hidden");
   $("resultContent").classList.add("hidden");
   $("resultEmpty").innerHTML =
-    `<div class="empty-emoji">⚠️</div><p>${msg}</p>`;
+    `<span class="empty-icon" style="color:var(--accent);background:var(--accent-soft)"><svg class="icon" aria-hidden="true"><use href="#i-alert" /></svg></span>` +
+    `<p class="empty-title">${msg}</p>` +
+    `<p class="empty-desc">Bilgileri kontrol edip tekrar deneyin.</p>`;
 }
 
 function renderResult(r) {
@@ -228,7 +235,8 @@ function initTheme() {
 }
 function applyTheme(theme) {
   document.documentElement.dataset.theme = theme;
-  $("themeToggle").querySelector(".theme-icon").textContent = theme === "dark" ? "☀️" : "🌙";
+  const use = $("themeToggle").querySelector("use");
+  use.setAttribute("href", theme === "dark" ? "#i-sun" : "#i-moon");
 }
 
 /* ---------- Kurulum ---------- */
@@ -291,8 +299,7 @@ function init() {
       updateCityInfo();
       $("resultContent").classList.add("hidden");
       $("resultEmpty").classList.remove("hidden");
-      $("resultEmpty").innerHTML =
-        `<div class="empty-emoji">🧮</div><p>Bilgileri doldur ve <strong>Hesapla</strong>'ya bas.<br />Sonuçlar burada görünecek.</p>`;
+      $("resultEmpty").innerHTML = EMPTY_STATE_HTML;
     }, 0);
   });
 }

@@ -5,11 +5,11 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>NeYakar — Yol Maliyeti Hesaplama</title>
   <meta name="description" content="Şehirler arası yolculuğun yakıt, otoyol (HGS/OGS) ve köprü maliyetini anında hesapla. Benzin, dizel, LPG ve elektrikli araçlar için toplam ve kişi başı maliyet." />
-  <meta name="theme-color" content="#0ea5e9" />
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⛽</text></svg>" />
+  <meta name="theme-color" content="#4f46e5" />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%234f46e5'/%3E%3Cpath d='M9 22V11a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v11M9 16h10M20 12l2 2v6a1.5 1.5 0 0 0 3 0v-8l-3-3' fill='none' stroke='white' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="style.css" />
 
   <!--
@@ -26,23 +26,42 @@
     crossorigin="anonymous"></script>
 </head>
 <body>
+  <!-- SVG ikon tanımları -->
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+    <defs>
+      <symbol id="i-route" viewBox="0 0 24 24"><circle cx="6" cy="19" r="2.4"/><circle cx="18" cy="5" r="2.4"/><path d="M8.4 19H14a3 3 0 0 0 0-6h-4a3 3 0 0 1 0-6h5.6"/></symbol>
+      <symbol id="i-car" viewBox="0 0 24 24"><path d="M5 11l1.5-4.2A2 2 0 0 1 8.4 5.5h7.2a2 2 0 0 1 1.9 1.3L19 11M4 11h16a1 1 0 0 1 1 1v4a1 1 0 0 1-1 1h-1M4 11a1 1 0 0 0-1 1v4a1 1 0 0 0 1 1h1m0 0h14m-14 0v1.5a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V17m16 0v1.5a1 1 0 0 0 1 1h1a1 1 0 0 0 1-1V17"/><circle cx="7.5" cy="14" r="1"/><circle cx="16.5" cy="14" r="1"/></symbol>
+      <symbol id="i-road" viewBox="0 0 24 24"><path d="M8 3 5 21M16 3l3 18M12 4v2m0 4v2m0 4v2"/></symbol>
+      <symbol id="i-users" viewBox="0 0 24 24"><circle cx="9" cy="8" r="3"/><path d="M3.5 20a5.5 5.5 0 0 1 11 0M16 5.2a3 3 0 0 1 0 5.6M17.5 20a5.5 5.5 0 0 0-3-4.9"/></symbol>
+      <symbol id="i-calc" viewBox="0 0 24 24"><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M8 7h8M8 11h1m3 0h1m3 0h.5M8 15h1m3 0h1m3 0h.5M8 18h1m3 0h1"/></symbol>
+      <symbol id="i-swap" viewBox="0 0 24 24"><path d="M7 4 3 8l4 4M3 8h13M17 20l4-4-4-4M21 16H8"/></symbol>
+      <symbol id="i-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></symbol>
+      <symbol id="i-moon" viewBox="0 0 24 24"><path d="M20 14.5A8 8 0 0 1 9.5 4 8 8 0 1 0 20 14.5z"/></symbol>
+      <symbol id="i-alert" viewBox="0 0 24 24"><path d="M12 3.5 2.5 20h19L12 3.5zM12 10v4M12 17.5v.5"/></symbol>
+      <symbol id="i-arrow" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></symbol>
+    </defs>
+  </svg>
+
   <header class="topbar">
-    <div class="brand">
-      <span class="brand-logo" aria-hidden="true">⛽</span>
-      <div class="brand-text">
+    <a class="brand" href="./" aria-label="NeYakar ana sayfa">
+      <span class="brand-mark" aria-hidden="true">
+        <svg viewBox="0 0 32 32"><path d="M9 22V11a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v11M9 16h10M20 12l2 2v6a1.5 1.5 0 0 0 3 0v-8l-3-3" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </span>
+      <span class="brand-text">
         <span class="brand-name">NeYakar</span>
-        <span class="brand-tag">Yol maliyeti hesaplama</span>
-      </div>
-    </div>
-    <button id="themeToggle" class="theme-toggle" type="button" aria-label="Tema değiştir" title="Tema değiştir">
-      <span class="theme-icon">🌙</span>
+        <span class="brand-tag">Yol Maliyeti Hesaplayıcı</span>
+      </span>
+    </a>
+    <button id="themeToggle" class="theme-toggle" type="button" aria-label="Temayı değiştir" title="Temayı değiştir">
+      <svg class="icon" aria-hidden="true"><use href="#i-moon" /></svg>
     </button>
   </header>
 
   <main class="container">
     <section class="hero">
-      <h1>Yolculuğun sana <span class="grad">ne yakar?</span></h1>
-      <p class="hero-sub">Yakıt, otoyol (HGS/OGS) ve köprü ücretlerini tek ekranda hesapla. Şehir seç, gerisini bırak.</p>
+      <span class="hero-badge">Türkiye · 81 il · Anlık hesaplama</span>
+      <h1>Yolculuğunuzun gerçek maliyetini <span class="grad">saniyeler içinde</span> öğrenin</h1>
+      <p class="hero-sub">Yakıt, otoyol (HGS/OGS) ve köprü ücretlerini tek ekranda hesaplayın. Şehir seçin, aracınızın verilerini girin; toplam ve kişi başı maliyeti anında görün.</p>
     </section>
 
     <!-- Reklam: hero altı yatay banner -->
@@ -59,25 +78,30 @@
     <div class="layout">
       <!-- FORM -->
       <form id="calcForm" class="card form-card" autocomplete="off" novalidate>
-        <!-- Mesafe modu -->
-        <div class="field-group">
+        <!-- Mesafe -->
+        <section class="field-group">
           <div class="group-head">
-            <span class="group-icon">📍</span>
-            <h2>Mesafe</h2>
+            <span class="group-icon"><svg class="icon" aria-hidden="true"><use href="#i-route" /></svg></span>
+            <div>
+              <h2>Güzergâh</h2>
+              <p class="group-sub">Şehir seçin veya mesafeyi elle girin</p>
+            </div>
           </div>
 
           <div class="seg" role="tablist" aria-label="Mesafe modu">
             <button type="button" class="seg-btn active" data-mode="cities" role="tab" aria-selected="true">Şehirler arası</button>
-            <button type="button" class="seg-btn" data-mode="manual" role="tab" aria-selected="false">Manuel</button>
+            <button type="button" class="seg-btn" data-mode="manual" role="tab" aria-selected="false">Manuel mesafe</button>
           </div>
 
           <div id="citiesMode" class="mode-panel">
-            <div class="row">
+            <div class="route-row">
               <label class="field">
                 <span>Nereden</span>
                 <select id="fromCity"></select>
               </label>
-              <button type="button" id="swapCities" class="swap-btn" aria-label="Şehirleri değiştir" title="Şehirleri değiştir">⇄</button>
+              <button type="button" id="swapCities" class="swap-btn" aria-label="Şehirleri değiştir" title="Şehirleri değiştir">
+                <svg class="icon" aria-hidden="true"><use href="#i-swap" /></svg>
+              </button>
               <label class="field">
                 <span>Nereye</span>
                 <select id="toCity"></select>
@@ -95,22 +119,26 @@
 
           <label class="check">
             <input id="roundTrip" type="checkbox" />
-            <span>Gidiş-dönüş (mesafe ×2)</span>
+            <span class="check-box" aria-hidden="true"></span>
+            <span class="check-label">Gidiş-dönüş <em>(mesafe ve ücretler iki katına çıkar)</em></span>
           </label>
-        </div>
+        </section>
 
         <!-- Yakıt -->
-        <div class="field-group">
+        <section class="field-group">
           <div class="group-head">
-            <span class="group-icon">🚗</span>
-            <h2>Yakıt</h2>
+            <span class="group-icon"><svg class="icon" aria-hidden="true"><use href="#i-car" /></svg></span>
+            <div>
+              <h2>Araç ve Yakıt</h2>
+              <p class="group-sub">Yakıt türü, tüketim ve güncel fiyat</p>
+            </div>
           </div>
 
           <div class="fuel-tabs" id="fuelTabs" role="tablist" aria-label="Yakıt türü">
-            <button type="button" class="fuel-tab active" data-fuel="benzin">⛽ Benzin</button>
-            <button type="button" class="fuel-tab" data-fuel="dizel">🛢️ Dizel</button>
-            <button type="button" class="fuel-tab" data-fuel="lpg">💨 LPG</button>
-            <button type="button" class="fuel-tab" data-fuel="elektrik">⚡ Elektrik</button>
+            <button type="button" class="fuel-tab active" data-fuel="benzin">Benzin</button>
+            <button type="button" class="fuel-tab" data-fuel="dizel">Dizel</button>
+            <button type="button" class="fuel-tab" data-fuel="lpg">LPG</button>
+            <button type="button" class="fuel-tab" data-fuel="elektrik">Elektrik</button>
           </div>
 
           <div class="row">
@@ -123,18 +151,21 @@
               <input id="fuelPrice" type="number" inputmode="decimal" min="0" step="0.01" placeholder="örn. 43.50" />
             </label>
           </div>
-          <p class="hint">Fiyatlar tahmini varsayılan olarak dolduruldu; güncel değerleri girebilirsin.</p>
-        </div>
+          <p class="hint">Alanlar güncel tahmini değerlerle dolduruldu; kendi verilerinizle güncelleyebilirsiniz.</p>
+        </section>
 
         <!-- Yol masrafları -->
-        <div class="field-group">
+        <section class="field-group">
           <div class="group-head">
-            <span class="group-icon">🛣️</span>
-            <h2>Yol masrafları</h2>
+            <span class="group-icon"><svg class="icon" aria-hidden="true"><use href="#i-road" /></svg></span>
+            <div>
+              <h2>Geçiş Ücretleri</h2>
+              <p class="group-sub">Otoyol (HGS/OGS) ve köprü</p>
+            </div>
           </div>
           <div class="row">
             <label class="field">
-              <span>Otoyol / HGS-OGS (₺)</span>
+              <span>Otoyol · HGS/OGS (₺)</span>
               <input id="tollCost" type="number" inputmode="decimal" min="0" step="0.5" placeholder="0" />
             </label>
             <label class="field">
@@ -143,87 +174,94 @@
             </label>
           </div>
           <p id="tollHint" class="hint"></p>
-        </div>
+        </section>
 
         <!-- Kişi -->
-        <div class="field-group">
+        <section class="field-group">
           <div class="group-head">
-            <span class="group-icon">👥</span>
-            <h2>Kişi sayısı</h2>
-          </div>
-          <label class="field">
-            <span>Maliyeti kaç kişi paylaşacak?</span>
-            <div class="stepper">
-              <button type="button" id="personMinus" class="step-btn" aria-label="Azalt">−</button>
-              <input id="persons" type="number" inputmode="numeric" min="1" step="1" value="1" />
-              <button type="button" id="personPlus" class="step-btn" aria-label="Artır">+</button>
+            <span class="group-icon"><svg class="icon" aria-hidden="true"><use href="#i-users" /></svg></span>
+            <div>
+              <h2>Yolcu Sayısı</h2>
+              <p class="group-sub">Maliyeti kaç kişi paylaşacak?</p>
             </div>
-          </label>
-        </div>
+          </div>
+          <div class="stepper">
+            <button type="button" id="personMinus" class="step-btn" aria-label="Azalt">−</button>
+            <input id="persons" type="number" inputmode="numeric" min="1" step="1" value="1" aria-label="Kişi sayısı" />
+            <button type="button" id="personPlus" class="step-btn" aria-label="Artır">+</button>
+          </div>
+        </section>
 
         <div class="form-actions">
-          <button type="submit" class="btn-primary">Hesapla</button>
+          <button type="submit" class="btn-primary">
+            Maliyeti Hesapla
+            <svg class="icon" aria-hidden="true"><use href="#i-arrow" /></svg>
+          </button>
           <button type="button" id="resetBtn" class="btn-ghost">Sıfırla</button>
         </div>
       </form>
 
       <!-- SONUÇ -->
-      <aside class="card result-card" id="resultCard" aria-live="polite">
-        <div id="resultEmpty" class="result-empty">
-          <div class="empty-emoji">🧮</div>
-          <p>Bilgileri doldur ve <strong>Hesapla</strong>'ya bas.<br />Sonuçlar burada görünecek.</p>
+      <aside class="result-wrap" aria-live="polite">
+        <div class="card result-card">
+          <div id="resultEmpty" class="result-empty">
+            <span class="empty-icon"><svg class="icon" aria-hidden="true"><use href="#i-calc" /></svg></span>
+            <p class="empty-title">Sonuçlar burada görünecek</p>
+            <p class="empty-desc">Formu doldurup <strong>Maliyeti Hesapla</strong>'ya basın.</p>
+          </div>
+
+          <div id="resultContent" class="result-content hidden">
+            <div class="result-total">
+              <span class="result-total-label">Toplam Maliyet</span>
+              <span class="result-total-value" id="rTotal">₺0</span>
+              <span class="result-total-sub" id="rRouteLabel"></span>
+            </div>
+
+            <div class="result-grid">
+              <div class="rstat">
+                <span class="rstat-label">Toplam mesafe</span>
+                <span class="rstat-value" id="rDistance">0 km</span>
+              </div>
+              <div class="rstat">
+                <span class="rstat-label">Yakıt maliyeti</span>
+                <span class="rstat-value" id="rFuel">₺0</span>
+              </div>
+              <div class="rstat">
+                <span class="rstat-label">Geçiş ücretleri</span>
+                <span class="rstat-value" id="rToll">₺0</span>
+              </div>
+              <div class="rstat">
+                <span class="rstat-label">Km başına</span>
+                <span class="rstat-value" id="rPerKm">₺0</span>
+              </div>
+            </div>
+
+            <div class="result-bar" aria-hidden="true">
+              <div class="bar-seg bar-fuel" id="barFuel"></div>
+              <div class="bar-seg bar-toll" id="barToll"></div>
+            </div>
+            <div class="result-legend" aria-hidden="true">
+              <span><i class="dot dot-fuel"></i> Yakıt <b id="pctFuel">0%</b></span>
+              <span><i class="dot dot-toll"></i> Geçiş ücretleri <b id="pctToll">0%</b></span>
+            </div>
+
+            <div class="result-breakdown">
+              <div class="bd-row">
+                <span>Yakıt tüketimi</span>
+                <span id="rFuelUsed">0</span>
+              </div>
+              <div class="bd-row">
+                <span>Geçiş ücretleri (HGS/OGS + köprü)</span>
+                <span id="rTollDetail">₺0</span>
+              </div>
+              <div class="bd-row bd-highlight hidden" id="rPerPersonRow">
+                <span>Kişi başı maliyet</span>
+                <span id="rPerPerson">₺0</span>
+              </div>
+            </div>
+          </div>
         </div>
-
-        <div id="resultContent" class="result-content hidden">
-          <div class="result-total">
-            <span class="result-total-label">Toplam maliyet</span>
-            <span class="result-total-value" id="rTotal">₺0</span>
-            <span class="result-total-sub" id="rRouteLabel"></span>
-          </div>
-
-          <div class="result-grid">
-            <div class="rstat">
-              <span class="rstat-label">Toplam mesafe</span>
-              <span class="rstat-value" id="rDistance">0 km</span>
-            </div>
-            <div class="rstat">
-              <span class="rstat-label">Yakıt maliyeti</span>
-              <span class="rstat-value" id="rFuel">₺0</span>
-            </div>
-            <div class="rstat">
-              <span class="rstat-label">HGS/OGS + Köprü</span>
-              <span class="rstat-value" id="rToll">₺0</span>
-            </div>
-            <div class="rstat">
-              <span class="rstat-label">Km başına maliyet</span>
-              <span class="rstat-value" id="rPerKm">₺0</span>
-            </div>
-          </div>
-
-          <div class="result-breakdown">
-            <div class="bd-row">
-              <span>Yakıt tüketimi</span>
-              <span id="rFuelUsed">0</span>
-            </div>
-            <div class="bd-row">
-              <span>Yol ücretleri (HGS/OGS + köprü)</span>
-              <span id="rTollDetail">₺0</span>
-            </div>
-            <div class="bd-row bd-highlight" id="rPerPersonRow">
-              <span>Kişi başı maliyet</span>
-              <span id="rPerPerson">₺0</span>
-            </div>
-          </div>
-
-          <div class="result-bar" aria-hidden="true">
-            <div class="bar-seg bar-fuel" id="barFuel" title="Yakıt"></div>
-            <div class="bar-seg bar-toll" id="barToll" title="Yol ücretleri"></div>
-          </div>
-          <div class="result-legend" aria-hidden="true">
-            <span><i class="dot dot-fuel"></i> Yakıt <b id="pctFuel">0%</b></span>
-            <span><i class="dot dot-toll"></i> Yol ücretleri <b id="pctToll">0%</b></span>
-          </div>
-        </div>
+        <p class="disclaimer">Sonuçlar tahminidir. Güncel yakıt fiyatları ve geçiş ücretleri değişkenlik gösterebilir.</p>
       </aside>
     </div>
 
@@ -240,7 +278,9 @@
   </main>
 
   <footer class="footer">
-    <p>NeYakar · Tüm hesaplamalar tahminidir, güncel fiyat ve ücretleri kontrol edin.</p>
+    <span>NeYakar</span>
+    <span class="footer-sep">·</span>
+    <span>Açık kaynak yol maliyeti hesaplayıcı</span>
   </footer>
 
   <script src="cities.js"></script>
