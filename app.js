@@ -15,6 +15,16 @@ const fmtTRY = (n) =>
 const fmtNum = (n, d = 0) =>
   new Intl.NumberFormat("tr-TR", { maximumFractionDigits: d }).format(n);
 
+/** Türkçe kurallı baş harf büyütme ("kadıköy" -> "Kadıköy"). */
+const titleCase = (s) =>
+  s.replace(/(^|[\s\-\/])([a-zçğıöşü])/g, (m, p, c) => p + c.toLocaleUpperCase("tr"));
+
+/** Süreyi "2 sa 15 dk" biçiminde göster. */
+const fmtDur = (min) => {
+  const h = Math.floor(min / 60), m = Math.round(min % 60);
+  return h > 0 ? `${h} sa ${m} dk` : `${m} dk`;
+};
+
 /** İki koordinat arası büyük daire mesafesi (km). */
 function haversineKm(a, b) {
   const R = 6371;
@@ -56,6 +66,15 @@ function getCityDistance() {
   if (!from || !to) return null;
   if (from.name === to.name) return 0;
   return Math.round(haversineKm(from, to) * ROAD_FACTOR);
+}
+
+/** Seçili ile göre ilçe listesini doldur. */
+function populateDistricts(citySelId, distSelId) {
+  const city = $(citySelId).value;
+  const list = (typeof DISTRICTS !== "undefined" && DISTRICTS[city]) || [];
+  $(distSelId).innerHTML =
+    `<option value="">İl geneli / merkez</option>` +
+    list.map((d) => `<option value="${d}">${titleCase(d)}</option>`).join("");
 }
 
 /** Şehirler arası modda mesafe notunu ve önerilen ücretleri güncelle. */
@@ -145,49 +164,104 @@ function setMode(mode) {
   $("manualMode").classList.toggle("hidden", mode !== "manual");
 }
 
-/* ---------- Gerçek karayolu mesafesi (OSRM) ---------- */
-/** İki koordinat arası gerçek sürüş mesafesi (km) + rota geometrisi, yoksa null. */
-async function getRoadDistance(from, to) {
+/* ---------- Konum çözümleme & rota (OSM/OSRM) ---------- */
+const _geoCache = {};
+
+/** İl merkezi noktası. */
+function cityPoint(name, label) {
+  const c = CITIES.find((x) => x.name === name);
+  return c ? { lat: c.lat, lon: c.lon, label: label || name } : null;
+}
+
+/** İl+ilçe -> koordinat. İlçe boş/merkez ise il merkezi; değilse Nominatim (OSM). */
+async function geocode(province, district, label) {
+  const center = cityPoint(province, label);
+  if (!district || district === "merkez") return center;
+  const key = province + "|" + district;
+  if (_geoCache[key]) return { ...(_geoCache[key]), label: label || _geoCache[key].label };
+  try {
+    const q = encodeURIComponent(`${district}, ${province}, Türkiye`);
+    const url = `https://nominatim.openstreetmap.org/search?format=json&limit=1&countrycodes=tr&q=${q}`;
+    const ctrl = new AbortController();
+    const t = setTimeout(() => ctrl.abort(), 8000);
+    const res = await fetch(url, { signal: ctrl.signal, headers: { Accept: "application/json" } });
+    clearTimeout(t);
+    if (res.ok) {
+      const arr = await res.json();
+      if (arr && arr[0] && isFinite(+arr[0].lat)) {
+        const p = { lat: +arr[0].lat, lon: +arr[0].lon, label: label || district };
+        _geoCache[key] = p;
+        return p;
+      }
+    }
+  } catch { /* yut */ }
+  return center; // yedek: il merkezi
+}
+
+/** OSRM ile en kısa + alternatif rotalar. Her biri {km, min, geometry}. */
+async function getRoadRoutes(from, to) {
   try {
     const url =
       `https://router.project-osrm.org/route/v1/driving/` +
-      `${from.lon},${from.lat};${to.lon},${to.lat}?overview=full&geometries=geojson`;
+      `${from.lon},${from.lat};${to.lon},${to.lat}` +
+      `?overview=full&geometries=geojson&alternatives=true`;
     const ctrl = new AbortController();
-    const timer = setTimeout(() => ctrl.abort(), 8000);
+    const t = setTimeout(() => ctrl.abort(), 9000);
     const res = await fetch(url, { signal: ctrl.signal });
-    clearTimeout(timer);
+    clearTimeout(t);
     if (!res.ok) return null;
     const data = await res.json();
-    const route = data.routes && data.routes[0];
-    if (!route || !isFinite(route.distance)) return null;
-    return { km: Math.round(route.distance / 1000), geometry: route.geometry };
+    if (!data.routes || !data.routes.length) return null;
+    return data.routes
+      .map((r) => ({ km: Math.round(r.distance / 1000), min: Math.round(r.duration / 60), geometry: r.geometry }))
+      .sort((a, b) => a.km - b.km);
   } catch {
     return null; // ağ hatası / zaman aşımı -> tahmine düş
   }
 }
 
+/* ---------- Rota durumu (alternatifler) ---------- */
+let _routes = [];
+let _activeRoute = 0;
+let _routeLabel = "";
+let _routePoints = null;
+
+function applyRoute(i) {
+  const r = _routes[i];
+  if (!r) return;
+  _activeRoute = i;
+  renderTrip(r.km, _routeLabel, { estimate: false, points: _routePoints, geometry: r.geometry });
+  renderRouteOptions();
+}
+
+function renderRouteOptions() {
+  const box = $("routeOptions");
+  if (!box) return;
+  if (!_routes || _routes.length < 2) { box.innerHTML = ""; return; }
+  box.innerHTML = _routes
+    .map((r, i) =>
+      `<button type="button" class="route-opt${i === _activeRoute ? " active" : ""}" data-i="${i}">` +
+      `<span class="ro-name">${i === 0 ? "En kısa" : "Alternatif " + i}</span>` +
+      `<span class="ro-meta">${fmtNum(r.km)} km · ~${fmtDur(r.min)}</span></button>`
+    )
+    .join("");
+  box.querySelectorAll(".route-opt").forEach((b) =>
+    b.addEventListener("click", () => applyRoute(+b.dataset.i))
+  );
+}
+
+function showLoading() {
+  $("resultEmpty").classList.remove("hidden");
+  $("resultContent").classList.add("hidden");
+  $("resultEmpty").innerHTML =
+    `<span class="empty-icon"><svg class="icon" aria-hidden="true"><use href="#i-route" /></svg></span>` +
+    `<p class="empty-title">Rota hesaplanıyor…</p>` +
+    `<p class="empty-desc">Gerçek yol mesafesi getiriliyor.</p>`;
+}
+
 /* ---------- Hesaplama ---------- */
 async function calculate() {
-  let oneWay, routeLabel, fromName = "", toName = "";
-
-  if (state.mode === "cities") {
-    oneWay = getCityDistance();
-    fromName = $("fromCity").value;
-    toName = $("toCity").value;
-    if (oneWay === null || fromName === toName) {
-      showError("Lütfen farklı iki şehir seçin.");
-      return;
-    }
-    routeLabel = `${fromName} → ${toName}`;
-  } else {
-    oneWay = parseFloat($("manualDistance").value);
-    if (!isFinite(oneWay) || oneWay <= 0) {
-      showError("Lütfen geçerli bir mesafe girin.");
-      return;
-    }
-    routeLabel = "Manuel mesafe";
-  }
-
+  // Yakıt doğrulaması (ortak)
   const consumption = parseFloat($("consumption").value);
   const fuelPrice = parseFloat($("fuelPrice").value);
   if (!isFinite(consumption) || consumption < 0 || !isFinite(fuelPrice) || fuelPrice < 0) {
@@ -195,17 +269,61 @@ async function calculate() {
     return;
   }
 
-  // Şehirler modunda önce tahminle göster, sonra gerçek yol mesafesiyle güncelle
-  renderTrip(oneWay, routeLabel, { estimate: state.mode === "cities" });
-
-  if (state.mode === "cities") {
-    const from = CITIES.find((c) => c.name === fromName);
-    const to = CITIES.find((c) => c.name === toName);
-    const road = await getRoadDistance(from, to);
-    // Yanıt gelene kadar kullanıcı yeni bir hesap yapmadıysa uygula
-    if (road && $("fromCity").value === fromName && $("toCity").value === toName) {
-      renderTrip(road.km, routeLabel, { estimate: false, geometry: road.geometry });
+  if (state.mode === "manual") {
+    const oneWay = parseFloat($("manualDistance").value);
+    if (!isFinite(oneWay) || oneWay <= 0) {
+      showError("Lütfen geçerli bir mesafe girin.");
+      return;
     }
+    _routes = [];
+    renderTrip(oneWay, "Manuel mesafe", { estimate: false });
+    return;
+  }
+
+  // Şehirler modu
+  const fromCity = $("fromCity").value, toCity = $("toCity").value;
+  const fromDist = $("fromDistrict").value, toDist = $("toDistrict").value;
+  if (fromCity === toCity && fromDist === toDist) {
+    showError("Lütfen farklı iki nokta seçin.");
+    return;
+  }
+  const lbl = (city, dist) => (dist ? `${city} (${titleCase(dist)})` : city);
+  const fromLabel = lbl(fromCity, fromDist), toLabel = lbl(toCity, toDist);
+  const routeLabel = `${fromLabel} → ${toLabel}`;
+
+  // İlk gösterim: il merkezleriyle tahmin (yoksa yükleniyor)
+  const estPoints = { from: cityPoint(fromCity, fromLabel), to: cityPoint(toCity, toLabel) };
+  const estKm = getCityDistance();
+  if (estKm && estKm > 0) {
+    renderTrip(estKm, routeLabel, { estimate: true, points: estPoints });
+  } else {
+    showLoading();
+  }
+
+  // Gerçek koordinat (ilçe -> OSM) + OSRM rotaları
+  const [fp, tp] = await Promise.all([
+    geocode(fromCity, fromDist, fromLabel),
+    geocode(toCity, toDist, toLabel),
+  ]);
+  // Kullanıcı bu sırada seçimi değiştirdiyse iptal
+  if ($("fromCity").value !== fromCity || $("toCity").value !== toCity ||
+      $("fromDistrict").value !== fromDist || $("toDistrict").value !== toDist) return;
+  if (!fp || !tp) return; // koordinat yok -> tahmin ekranda kalır
+
+  const routes = await getRoadRoutes(fp, tp);
+  if ($("fromCity").value !== fromCity || $("toCity").value !== toCity ||
+      $("fromDistrict").value !== fromDist || $("toDistrict").value !== toDist) return;
+
+  if (routes && routes.length) {
+    _routes = routes;
+    _routeLabel = routeLabel;
+    _routePoints = { from: fp, to: tp };
+    applyRoute(0);
+  } else if (estKm && estKm > 0) {
+    // OSRM erişilemedi: tahmini sonucu bırak, düz çizgi harita
+    renderTrip(estKm, routeLabel, { estimate: true, points: estPoints });
+  } else {
+    showError("Rota hesaplanamadı. Lütfen tekrar deneyin.");
   }
 }
 
@@ -244,10 +362,11 @@ function renderTrip(oneWay, routeLabel, opts = {}) {
     unit: FUEL_DEFAULTS[state.fuel].unit,
   });
 
-  if (state.mode === "cities") {
-    showRouteMap($("fromCity").value, $("toCity").value, opts.geometry);
+  if (state.mode === "cities" && opts.points && opts.points.from && opts.points.to) {
+    showRouteMap(opts.points.from, opts.points.to, opts.geometry);
   } else {
     $("mapCard").classList.add("hidden");
+    const box = $("routeOptions"); if (box) box.innerHTML = "";
   }
 }
 
@@ -338,12 +457,9 @@ function renderFuelCompare(distance) {
 let _map = null;
 let _mapLayer = null;
 
-function showRouteMap(fromName, toName, geometry) {
+function showRouteMap(fromPoint, toPoint, geometry) {
   const card = $("mapCard");
-  if (typeof L === "undefined") { card.classList.add("hidden"); return; } // Leaflet yüklenmedi
-  const from = CITIES.find((c) => c.name === fromName);
-  const to = CITIES.find((c) => c.name === toName);
-  if (!from || !to || from.name === to.name) { card.classList.add("hidden"); return; }
+  if (typeof L === "undefined" || !fromPoint || !toPoint) { card.classList.add("hidden"); return; }
 
   card.classList.remove("hidden");
 
@@ -356,8 +472,8 @@ function showRouteMap(fromName, toName, geometry) {
   }
   if (_mapLayer) _mapLayer.remove();
 
-  const a = [from.lat, from.lon];
-  const b = [to.lat, to.lon];
+  const a = [fromPoint.lat, fromPoint.lon];
+  const b = [toPoint.lat, toPoint.lon];
   const dot = (latlng, color) =>
     L.circleMarker(latlng, { radius: 7, color: "#fff", weight: 2, fillColor: color, fillOpacity: 1 });
 
@@ -368,8 +484,8 @@ function showRouteMap(fromName, toName, geometry) {
 
   _mapLayer = L.layerGroup([
     line,
-    dot(a, "#4f46e5").bindTooltip(from.name),
-    dot(b, "#0d9488").bindTooltip(to.name),
+    dot(a, "#4f46e5").bindTooltip(fromPoint.label || "Başlangıç"),
+    dot(b, "#0d9488").bindTooltip(toPoint.label || "Varış"),
   ]).addTo(_map);
 
   _map.fitBounds(line.getBounds(), { padding: [30, 30] });
@@ -386,6 +502,8 @@ function collectParams() {
   if (state.mode === "cities") {
     p.set("from", $("fromCity").value);
     p.set("to", $("toCity").value);
+    if ($("fromDistrict").value) p.set("fd", $("fromDistrict").value);
+    if ($("toDistrict").value) p.set("td", $("toDistrict").value);
   } else {
     p.set("d", $("manualDistance").value || "");
   }
@@ -417,6 +535,10 @@ function applyParamsFromURL() {
   if (state.mode === "cities") {
     if (p.get("from")) $("fromCity").value = p.get("from");
     if (p.get("to")) $("toCity").value = p.get("to");
+    populateDistricts("fromCity", "fromDistrict");
+    populateDistricts("toCity", "toDistrict");
+    if (p.get("fd")) $("fromDistrict").value = p.get("fd");
+    if (p.get("td")) $("toDistrict").value = p.get("td");
     updateCityInfo();
   } else if (p.get("d")) {
     $("manualDistance").value = p.get("d");
@@ -505,6 +627,8 @@ function init() {
   populateCities();
   setFuel("benzin");
   setMode("cities");
+  populateDistricts("fromCity", "fromDistrict");
+  populateDistricts("toCity", "toDistrict");
   updateCityInfo();
 
   // Mod sekmeleri
@@ -526,13 +650,22 @@ function init() {
     if (e.target.value !== "") applyVehicle($("vehicleBrand").value, +e.target.value);
   });
 
-  // Şehir değişimi
-  $("fromCity").addEventListener("change", updateCityInfo);
-  $("toCity").addEventListener("change", updateCityInfo);
+  // Şehir değişimi (il değişince ilçe listesi yenilenir)
+  $("fromCity").addEventListener("change", () => {
+    populateDistricts("fromCity", "fromDistrict");
+    updateCityInfo();
+  });
+  $("toCity").addEventListener("change", () => {
+    populateDistricts("toCity", "toDistrict");
+    updateCityInfo();
+  });
   $("swapCities").addEventListener("click", () => {
-    const f = $("fromCity").value;
-    $("fromCity").value = $("toCity").value;
-    $("toCity").value = f;
+    const fc = $("fromCity").value, tc = $("toCity").value;
+    const fd = $("fromDistrict").value, td = $("toDistrict").value;
+    $("fromCity").value = tc; $("toCity").value = fc;
+    populateDistricts("fromCity", "fromDistrict");
+    populateDistricts("toCity", "toDistrict");
+    $("fromDistrict").value = td; $("toDistrict").value = fd;
     updateCityInfo();
   });
 
@@ -562,8 +695,12 @@ function init() {
       setMode("cities");
       setFuel("benzin");
       populateCities();
+      populateDistricts("fromCity", "fromDistrict");
+      populateDistricts("toCity", "toDistrict");
       $("vehicleBrand").value = "";
       populateVehicleModels("");
+      _routes = [];
+      const ro = $("routeOptions"); if (ro) ro.innerHTML = "";
       $("roundTrip").checked = false;
       $("tollCost").value = "";
       $("bridgeCost").value = "";

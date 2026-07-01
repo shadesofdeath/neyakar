@@ -155,6 +155,17 @@
                 <select id="toCity"></select>
               </label>
             </div>
+            <div class="district-row">
+              <label class="field">
+                <span>İlçe <em>(isteğe bağlı)</em></span>
+                <select id="fromDistrict"></select>
+              </label>
+              <span class="district-spacer" aria-hidden="true"></span>
+              <label class="field">
+                <span>İlçe <em>(isteğe bağlı)</em></span>
+                <select id="toDistrict"></select>
+              </label>
+            </div>
             <p id="autoDistanceNote" class="hint"></p>
           </div>
 
@@ -341,7 +352,8 @@
         <div class="card map-card hidden" id="mapCard">
           <div class="map-head">Rota haritası</div>
           <div id="map"></div>
-          <p class="map-note">Karayolu rotası (OSRM) gösterilir; servise ulaşılamazsa düz çizgiye düşülür.</p>
+          <div id="routeOptions" class="route-options"></div>
+          <p class="map-note">En kısa karayolu rotası (OSRM) gösterilir; varsa alternatif rotalar arasından seçebilirsiniz. Servise ulaşılamazsa düz çizgiye düşülür.</p>
         </div>
         <p class="disclaimer">Sonuçlar tahminidir. Güncel yakıt fiyatları ve geçiş ücretleri değişkenlik gösterebilir.</p>
       </aside>
@@ -437,6 +449,7 @@
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
     integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
   <script src="cities.js"></script>
+  <script src="districts.js"></script>
   <script src="vehicles.js"></script>
   <script src="app.js"></script>
   <!-- AdSense reklam bloklarını başlat -->

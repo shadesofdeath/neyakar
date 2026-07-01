@@ -508,6 +508,35 @@ input:focus, select:focus {
   display: none;
 }
 
+/* ---------- İlçe satırı ---------- */
+.district-row { display: flex; gap: 10px; align-items: flex-end; margin-top: 10px; }
+.district-row .field { flex: 1; min-width: 0; }
+.district-spacer { flex: 0 0 44px; }
+.field > span em { font-style: normal; color: var(--text-muted); font-weight: 500; }
+@media (max-width: 440px) {
+  .district-row { flex-direction: column; align-items: stretch; }
+  .district-spacer { display: none; }
+}
+
+/* ---------- Rota seçenekleri (alternatifler) ---------- */
+.route-options { display: flex; flex-direction: column; gap: 8px; margin-top: 12px; }
+.route-options:empty { display: none; }
+.route-opt {
+  display: flex; align-items: center; justify-content: space-between; gap: 10px;
+  padding: 10px 13px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface-2);
+  color: var(--text);
+  font-family: inherit;
+  cursor: pointer;
+  transition: border-color .15s ease, background .15s ease;
+}
+.route-opt:hover { border-color: var(--border-strong); }
+.route-opt.active { border-color: var(--primary); background: var(--primary-soft); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--primary) 30%, transparent); }
+.ro-name { font-size: 13.5px; font-weight: 700; }
+.ro-meta { font-size: 12.5px; color: var(--text-soft); font-family: var(--mono); }
+
 /* ---------- Rota haritası ---------- */
 .map-card { padding: 16px; }
 .map-head { font-size: 13px; font-weight: 700; color: var(--text); margin-bottom: 10px; letter-spacing: -0.01em; }

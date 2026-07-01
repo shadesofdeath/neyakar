@@ -36,16 +36,22 @@ index.html            → Arayüz (satır içi SVG ikon sistemi)
 style.css             → Tasarım sistemi, açık/koyu tema, responsive
 app.js                → Hesaplama, paylaşım, harita ve araç seçici mantığı
 cities.js             → 81 il koordinatları, rota ücret önerileri, yakıt varsayılanları
+districts.js          → 81 il -> ilçe isim listesi (koordinat çalışma anında OSM'den)
 vehicles.js           → Yaygın araç modelleri ve segmentlerin tahmini tüketimi
 rota/                 → Popüler rotalar için üretilen SEO sayfaları (otomatik)
 scripts/gen-routes.mjs→ Rota sayfalarını, sitemap.xml ve robots.txt'yi üreten script
 sitemap.xml, robots.txt → SEO
 ```
 
-## Harita ve araç seçici
+## Mesafe, harita ve araç seçici
 
-- **Rota haritası** — Şehirler arası modda sonuç ekranında güzergâh Leaflet + OpenStreetMap ile gösterilir (API anahtarı gerekmez).
+- **Gerçek yol mesafesi** — Şehirler modunda mesafe, OSRM rota servisinden gerçek karayolu km'si olarak alınır (servise ulaşılamazsa kuş uçuşu tahminine düşülür).
+- **İl + ilçe seçimi** — 81 il ve tüm ilçeler (`districts.js`). İlçe seçilince koordinat çalışma anında OpenStreetMap (Nominatim) ile bulunur; ilçe boş bırakılırsa il merkezi kullanılır.
+- **Alternatif rotalar** — OSRM birden çok rota döndürürse en kısası önerilir; kullanıcı alternatifler arasından seçebilir, maliyet buna göre güncellenir.
+- **Rota haritası** — Sonuç ekranında gerçek rota Leaflet + OpenStreetMap ile çizilir (API anahtarı gerekmez).
 - **Araç seçici** — `vehicles.js` içindeki yaygın modeller/segmentlerden seçim yapınca yakıt türü ve tahmini tüketim otomatik dolar.
+
+> Not: OSRM ve Nominatim'in ücretsiz genel sunucuları yüksek trafikte hız sınırı uygulayabilir; yoğun kullanımda kendi anahtarınızla bir sağlayıcıya geçmeniz önerilir.
 
 ## SEO rota sayfaları
 
