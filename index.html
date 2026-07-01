@@ -11,6 +11,19 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="style.css" />
+
+  <!--
+    Google AdSense
+    Kullanmak için:
+    1. https://adsense.google.com adresinden hesap açıp siteyi ekleyin.
+    2. Aşağıdaki ca-pub-XXXXXXXXXXXXXXXX değerini kendi yayıncı kimliğinizle değiştirin.
+    3. index.html içindeki her <ins class="adsbygoogle"> bloğunda data-ad-client ve
+       data-ad-slot değerlerini AdSense panelinizden aldığınız değerlerle güncelleyin.
+    Yayıncı kimliği ayarlanmadan reklamlar görünmez; alanlar boş/gizli kalır.
+  -->
+  <script async
+    src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-XXXXXXXXXXXXXXXX"
+    crossorigin="anonymous"></script>
 </head>
 <body>
   <header class="topbar">
@@ -31,6 +44,17 @@
       <h1>Yolculuğun sana <span class="grad">ne yakar?</span></h1>
       <p class="hero-sub">Yakıt, otoyol (HGS/OGS) ve köprü ücretlerini tek ekranda hesapla. Şehir seç, gerisini bırak.</p>
     </section>
+
+    <!-- Reklam: hero altı yatay banner -->
+    <aside class="ad-slot" aria-label="Reklam">
+      <span class="ad-label">Reklam</span>
+      <ins class="adsbygoogle"
+        style="display:block"
+        data-ad-client="ca-pub-XXXXXXXXXXXXXXXX"
+        data-ad-slot="0000000000"
+        data-ad-format="auto"
+        data-full-width-responsive="true"></ins>
+    </aside>
 
     <div class="layout">
       <!-- FORM -->
@@ -202,6 +226,17 @@
         </div>
       </aside>
     </div>
+
+    <!-- Reklam: içerik altı responsive banner -->
+    <aside class="ad-slot" aria-label="Reklam">
+      <span class="ad-label">Reklam</span>
+      <ins class="adsbygoogle"
+        style="display:block"
+        data-ad-client="ca-pub-XXXXXXXXXXXXXXXX"
+        data-ad-slot="1111111111"
+        data-ad-format="auto"
+        data-full-width-responsive="true"></ins>
+    </aside>
   </main>
 
   <footer class="footer">
@@ -210,5 +245,15 @@
 
   <script src="cities.js"></script>
   <script src="app.js"></script>
+  <!-- AdSense reklam bloklarını başlat -->
+  <script>
+    (function () {
+      document.querySelectorAll("ins.adsbygoogle").forEach(function () {
+        try {
+          (window.adsbygoogle = window.adsbygoogle || []).push({});
+        } catch (e) {}
+      });
+    })();
+  </script>
 </body>
 </html>
