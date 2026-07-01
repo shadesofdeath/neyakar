@@ -9,6 +9,9 @@
 - **Şehirler arası mesafe** — 81 il arasında otomatik mesafe tahmini (örn. İstanbul → Ankara). Koordinat tabanlı hesaplama olduğu için API/anahtar gerektirmez.
 - **Kişi başı maliyet** — Masrafı kaç kişinin paylaşacağını girin, kişi başına düşen tutarı görün.
 - **Detaylı sonuç ekranı** — Toplam mesafe, yakıt maliyeti, geçiş ücretleri, toplam maliyet, km başına maliyet ve dağılım grafiği.
+- **Paylaşım** — Sonucu tek tıkla WhatsApp'ta paylaşın veya bağlantısını kopyalayın.
+- **Paylaşılabilir bağlantı** — Hesaplama adres çubuğuna işlenir; linki açan kişi aynı sonucu hazır görür.
+- **SSS + içerik bölümü** — "Nasıl çalışır?" adımları ve sıkça sorulan sorular.
 - **Açık / koyu tema** — Tercih tarayıcıda hatırlanır.
 
 ## Mesafe nasıl hesaplanır?

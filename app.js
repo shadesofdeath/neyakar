@@ -219,6 +219,114 @@ function renderResult(r) {
   $("barToll").style.width = `${tollPct}%`;
   $("pctFuel").textContent = `${fmtNum(fuelPct)}%`;
   $("pctToll").textContent = `${fmtNum(tollPct)}%`;
+
+  // Paylaşım verisi + adres çubuğu
+  updateShare(r);
+}
+
+/* ---------- Paylaşım & bağlantı ---------- */
+let lastShare = null; // { url, text }
+
+/** Mevcut form durumunu URL parametrelerine dök. */
+function collectParams() {
+  const p = new URLSearchParams();
+  p.set("m", state.mode === "manual" ? "m" : "c");
+  if (state.mode === "cities") {
+    p.set("from", $("fromCity").value);
+    p.set("to", $("toCity").value);
+  } else {
+    p.set("d", $("manualDistance").value || "");
+  }
+  p.set("f", state.fuel);
+  p.set("c", $("consumption").value || "");
+  p.set("p", $("fuelPrice").value || "");
+  p.set("t", $("tollCost").value || "0");
+  p.set("b", $("bridgeCost").value || "0");
+  p.set("n", $("persons").value || "1");
+  p.set("r", $("roundTrip").checked ? "1" : "0");
+  return p;
+}
+
+function buildShareURL() {
+  return location.origin + location.pathname + "?" + collectParams().toString();
+}
+
+/** URL parametrelerini forma uygula. Parametre yoksa false döner. */
+function applyParamsFromURL() {
+  const p = new URLSearchParams(location.search);
+  if (![...p.keys()].length) return false;
+
+  setMode(p.get("m") === "m" ? "manual" : "cities");
+
+  // Yakıtı, tüketim/fiyatı ezmeden ÖNCE ayarla
+  const fuel = p.get("f");
+  if (fuel && FUEL_DEFAULTS[fuel]) setFuel(fuel);
+
+  if (state.mode === "cities") {
+    if (p.get("from")) $("fromCity").value = p.get("from");
+    if (p.get("to")) $("toCity").value = p.get("to");
+    updateCityInfo();
+  } else if (p.get("d")) {
+    $("manualDistance").value = p.get("d");
+  }
+
+  if (p.get("c")) $("consumption").value = p.get("c");
+  if (p.get("p")) $("fuelPrice").value = p.get("p");
+  if (p.has("t")) { $("tollCost").value = p.get("t"); state.tollTouched = true; }
+  if (p.has("b")) { $("bridgeCost").value = p.get("b"); state.bridgeTouched = true; }
+  if (p.get("n")) $("persons").value = p.get("n");
+  $("roundTrip").checked = p.get("r") === "1";
+  return true;
+}
+
+/** Sonuçtan paylaşım metni/URL'si üret ve adres çubuğunu güncelle. */
+function updateShare(r) {
+  const url = buildShareURL();
+  const lines = [
+    "🚗 NeYakar · Yol maliyeti hesabı",
+    r.routeLabel,
+    `Toplam: ${fmtTRY(r.total)}`,
+  ];
+  if (r.persons > 1) lines.push(`Kişi başı: ${fmtTRY(r.perPerson)} (${r.persons} kişi)`);
+  lines.push(url);
+  lastShare = { url, text: lines.join("\n") };
+  history.replaceState(null, "", url);
+}
+
+function shareWhatsApp() {
+  if (!lastShare) return;
+  window.open("https://wa.me/?text=" + encodeURIComponent(lastShare.text), "_blank", "noopener");
+}
+
+async function copyLink() {
+  if (!lastShare) return;
+  const btn = $("copyLink");
+  const label = btn.querySelector(".copy-text");
+  const done = () => {
+    btn.classList.add("copied");
+    label.textContent = "Kopyalandı!";
+    btn.querySelector("use").setAttribute("href", "#i-check");
+    setTimeout(() => {
+      btn.classList.remove("copied");
+      label.textContent = "Bağlantıyı kopyala";
+      btn.querySelector("use").setAttribute("href", "#i-link");
+    }, 1800);
+  };
+  try {
+    await navigator.clipboard.writeText(lastShare.url);
+    done();
+  } catch {
+    // Eski tarayıcılar için yedek yöntem
+    const t = document.createElement("textarea");
+    t.value = lastShare.url;
+    t.style.position = "fixed";
+    t.style.opacity = "0";
+    document.body.appendChild(t);
+    t.select();
+    try { document.execCommand("copy"); done(); }
+    catch { prompt("Bağlantıyı kopyalayın:", lastShare.url); }
+    document.body.removeChild(t);
+  }
 }
 
 /* ---------- Tema ---------- */
@@ -279,6 +387,10 @@ function init() {
     $("persons").value = Math.max(1, (parseInt($("persons").value, 10) || 1) - 1);
   });
 
+  // Paylaşım butonları
+  $("shareWhatsApp").addEventListener("click", shareWhatsApp);
+  $("copyLink").addEventListener("click", copyLink);
+
   // Form
   $("calcForm").addEventListener("submit", (e) => {
     e.preventDefault();
@@ -300,8 +412,15 @@ function init() {
       $("resultContent").classList.add("hidden");
       $("resultEmpty").classList.remove("hidden");
       $("resultEmpty").innerHTML = EMPTY_STATE_HTML;
+      lastShare = null;
+      history.replaceState(null, "", location.pathname);
     }, 0);
   });
+
+  // Paylaşılan bağlantıyla açıldıysa: alanları doldur ve otomatik hesapla
+  if (applyParamsFromURL()) {
+    calculate();
+  }
 }
 
 document.addEventListener("DOMContentLoaded", init);
