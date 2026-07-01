@@ -145,20 +145,40 @@ function setMode(mode) {
   $("manualMode").classList.toggle("hidden", mode !== "manual");
 }
 
+/* ---------- Gerçek karayolu mesafesi (OSRM) ---------- */
+/** İki koordinat arası gerçek sürüş mesafesi (km) + rota geometrisi, yoksa null. */
+async function getRoadDistance(from, to) {
+  try {
+    const url =
+      `https://router.project-osrm.org/route/v1/driving/` +
+      `${from.lon},${from.lat};${to.lon},${to.lat}?overview=full&geometries=geojson`;
+    const ctrl = new AbortController();
+    const timer = setTimeout(() => ctrl.abort(), 8000);
+    const res = await fetch(url, { signal: ctrl.signal });
+    clearTimeout(timer);
+    if (!res.ok) return null;
+    const data = await res.json();
+    const route = data.routes && data.routes[0];
+    if (!route || !isFinite(route.distance)) return null;
+    return { km: Math.round(route.distance / 1000), geometry: route.geometry };
+  } catch {
+    return null; // ağ hatası / zaman aşımı -> tahmine düş
+  }
+}
+
 /* ---------- Hesaplama ---------- */
-function calculate() {
-  // Mesafe (tek yön)
-  let oneWay;
-  let routeLabel = "";
+async function calculate() {
+  let oneWay, routeLabel, fromName = "", toName = "";
+
   if (state.mode === "cities") {
     oneWay = getCityDistance();
-    const from = $("fromCity").value;
-    const to = $("toCity").value;
-    if (oneWay === null || from === to) {
+    fromName = $("fromCity").value;
+    toName = $("toCity").value;
+    if (oneWay === null || fromName === toName) {
       showError("Lütfen farklı iki şehir seçin.");
       return;
     }
-    routeLabel = `${from} → ${to}`;
+    routeLabel = `${fromName} → ${toName}`;
   } else {
     oneWay = parseFloat($("manualDistance").value);
     if (!isFinite(oneWay) || oneWay <= 0) {
@@ -168,9 +188,6 @@ function calculate() {
     routeLabel = "Manuel mesafe";
   }
 
-  const roundTrip = $("roundTrip").checked;
-  const distance = roundTrip ? oneWay * 2 : oneWay;
-
   const consumption = parseFloat($("consumption").value);
   const fuelPrice = parseFloat($("fuelPrice").value);
   if (!isFinite(consumption) || consumption < 0 || !isFinite(fuelPrice) || fuelPrice < 0) {
@@ -178,7 +195,28 @@ function calculate() {
     return;
   }
 
-  // Yol ücretleri: gidiş-dönüşte 2 katı
+  // Şehirler modunda önce tahminle göster, sonra gerçek yol mesafesiyle güncelle
+  renderTrip(oneWay, routeLabel, { estimate: state.mode === "cities" });
+
+  if (state.mode === "cities") {
+    const from = CITIES.find((c) => c.name === fromName);
+    const to = CITIES.find((c) => c.name === toName);
+    const road = await getRoadDistance(from, to);
+    // Yanıt gelene kadar kullanıcı yeni bir hesap yapmadıysa uygula
+    if (road && $("fromCity").value === fromName && $("toCity").value === toName) {
+      renderTrip(road.km, routeLabel, { estimate: false, geometry: road.geometry });
+    }
+  }
+}
+
+/** Tek yön mesafeden maliyetleri hesaplayıp sonuç ve haritayı çizer. */
+function renderTrip(oneWay, routeLabel, opts = {}) {
+  const roundTrip = $("roundTrip").checked;
+  const distance = roundTrip ? oneWay * 2 : oneWay;
+
+  const consumption = parseFloat($("consumption").value);
+  const fuelPrice = parseFloat($("fuelPrice").value);
+
   const tripMul = roundTrip ? 2 : 1;
   const toll = (parseFloat($("tollCost").value) || 0) * tripMul;
   const bridge = (parseFloat($("bridgeCost").value) || 0) * tripMul;
@@ -186,7 +224,6 @@ function calculate() {
 
   const persons = Math.max(1, parseInt($("persons").value, 10) || 1);
 
-  // Maliyetler
   const fuelUsed = (distance * consumption) / 100; // L veya kWh
   const fuelCost = fuelUsed * fuelPrice;
   const total = fuelCost + tollTotal;
@@ -194,7 +231,8 @@ function calculate() {
   const perPerson = total / persons;
 
   renderResult({
-    routeLabel: routeLabel + (roundTrip ? " · gidiş-dönüş" : ""),
+    routeLabel:
+      routeLabel + (roundTrip ? " · gidiş-dönüş" : "") + (opts.estimate ? " · tahmini" : ""),
     distance,
     fuelUsed,
     fuelCost,
@@ -206,9 +244,8 @@ function calculate() {
     unit: FUEL_DEFAULTS[state.fuel].unit,
   });
 
-  // Rota haritası yalnızca şehirler modunda
   if (state.mode === "cities") {
-    showRouteMap($("fromCity").value, $("toCity").value);
+    showRouteMap($("fromCity").value, $("toCity").value, opts.geometry);
   } else {
     $("mapCard").classList.add("hidden");
   }
@@ -301,7 +338,7 @@ function renderFuelCompare(distance) {
 let _map = null;
 let _mapLayer = null;
 
-function showRouteMap(fromName, toName) {
+function showRouteMap(fromName, toName, geometry) {
   const card = $("mapCard");
   if (typeof L === "undefined") { card.classList.add("hidden"); return; } // Leaflet yüklenmedi
   const from = CITIES.find((c) => c.name === fromName);
@@ -324,14 +361,18 @@ function showRouteMap(fromName, toName) {
   const dot = (latlng, color) =>
     L.circleMarker(latlng, { radius: 7, color: "#fff", weight: 2, fillColor: color, fillOpacity: 1 });
 
+  // Gerçek rota geometrisi (OSRM GeoJSON: [lon,lat]) varsa onu, yoksa düz çizgi
+  const line = geometry && geometry.coordinates
+    ? L.polyline(geometry.coordinates.map((c) => [c[1], c[0]]), { color: "#4f46e5", weight: 4, opacity: 0.85 })
+    : L.polyline([a, b], { color: "#4f46e5", weight: 4, opacity: 0.75, dashArray: "8 7" });
+
   _mapLayer = L.layerGroup([
-    L.polyline([a, b], { color: "#4f46e5", weight: 4, opacity: 0.75, dashArray: "8 7" }),
-    dot(a, "#4f46e5").bindTooltip(from.name, { permanent: false }),
-    dot(b, "#0d9488").bindTooltip(to.name, { permanent: false }),
+    line,
+    dot(a, "#4f46e5").bindTooltip(from.name),
+    dot(b, "#0d9488").bindTooltip(to.name),
   ]).addTo(_map);
 
-  _map.fitBounds([a, b], { padding: [36, 36] });
-  // Kart yeni görünür olduğunda boyutu düzelt
+  _map.fitBounds(line.getBounds(), { padding: [30, 30] });
   setTimeout(() => _map.invalidateSize(), 60);
 }
 
