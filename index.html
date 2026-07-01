@@ -12,6 +12,8 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
   <link rel="stylesheet" href="style.css" />
 
   <!--
@@ -180,6 +182,18 @@
             </div>
           </div>
 
+          <div class="route-row vehicle-picker">
+            <label class="field">
+              <span>Araç markası <em>(isteğe bağlı)</em></span>
+              <select id="vehicleBrand"></select>
+            </label>
+            <label class="field">
+              <span>Model</span>
+              <select id="vehicleModel" disabled></select>
+            </label>
+          </div>
+          <p class="hint">Aracınızı seçin; yakıt türü ve tahmini tüketim otomatik dolsun. Değerleri yine de elle değiştirebilirsiniz.</p>
+
           <div class="fuel-tabs" id="fuelTabs" role="tablist" aria-label="Yakıt türü">
             <button type="button" class="fuel-tab active" data-fuel="benzin">Benzin</button>
             <button type="button" class="fuel-tab" data-fuel="dizel">Dizel</button>
@@ -324,6 +338,11 @@
             </div>
           </div>
         </div>
+        <div class="card map-card hidden" id="mapCard">
+          <div class="map-head">Rota haritası</div>
+          <div id="map"></div>
+          <p class="map-note">Kuş uçuşu güzergâh gösterimidir; gerçek karayolu rotasından farklı olabilir.</p>
+        </div>
         <p class="disclaimer">Sonuçlar tahminidir. Güncel yakıt fiyatları ve geçiş ücretleri değişkenlik gösterebilir.</p>
       </aside>
     </div>
@@ -401,16 +420,24 @@
           <div class="faq-body"><p>Hayır. Tüm hesaplamalar tarayıcınızda yapılır; girdiğiniz bilgiler bir sunucuya gönderilmez. Yalnızca tema tercihiniz tarayıcınızda saklanır.</p></div>
         </details>
       </div>
+      <p style="text-align:center;margin:24px 0 0">
+        <a href="rota/index.html" class="link-btn" style="font-size:14px">Popüler rotaların hazır maliyetlerine göz atın →</a>
+      </p>
     </section>
   </main>
 
   <footer class="footer">
     <span>NeYakar</span>
     <span class="footer-sep">·</span>
+    <a href="rota/index.html" style="color:inherit">Popüler rotalar</a>
+    <span class="footer-sep">·</span>
     <span>Açık kaynak yol maliyeti hesaplayıcı</span>
   </footer>
 
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+    integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
   <script src="cities.js"></script>
+  <script src="vehicles.js"></script>
   <script src="app.js"></script>
   <!-- AdSense reklam bloklarını başlat -->
   <script>

@@ -508,6 +508,24 @@ input:focus, select:focus {
   display: none;
 }
 
+/* ---------- Rota haritası ---------- */
+.map-card { padding: 16px; }
+.map-head { font-size: 13px; font-weight: 700; color: var(--text); margin-bottom: 10px; letter-spacing: -0.01em; }
+#map {
+  height: 240px;
+  width: 100%;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  background: var(--surface-2);
+  z-index: 0;
+}
+.map-note { font-size: 11.5px; color: var(--text-muted); margin: 10px 0 0; line-height: 1.5; }
+.leaflet-container { font-family: var(--font); }
+
+/* ---------- Araç seçici ---------- */
+.vehicle-picker { margin-bottom: 4px; }
+.vehicle-picker .field > span em { font-style: normal; color: var(--text-muted); font-weight: 500; }
+
 /* ---------- Yakıt karşılaştırma ---------- */
 .fuel-compare { margin-top: 18px; padding-top: 18px; border-top: 1px solid var(--border); }
 .fc-head { font-size: 13px; font-weight: 700; color: var(--text); margin-bottom: 10px; letter-spacing: -0.01em; }
@@ -624,6 +642,34 @@ input:focus, select:focus {
 .faq-item[open] .faq-chevron { transform: rotate(180deg); }
 .faq-body { padding: 0 18px 16px; }
 .faq-body p { margin: 0; font-size: 13.5px; color: var(--text-soft); line-height: 1.6; }
+
+/* ---------- Rota sayfaları (SEO) ---------- */
+.route-table-wrap { overflow-x: auto; border: 1px solid var(--border); border-radius: var(--radius-sm); }
+.route-table { width: 100%; border-collapse: collapse; font-size: 14px; }
+.route-table th, .route-table td { padding: 12px 14px; text-align: left; border-bottom: 1px solid var(--border); }
+.route-table th { font-size: 12px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.04em; background: var(--surface-2); }
+.route-table td { font-family: var(--mono); font-weight: 600; }
+.route-table td:first-child { font-family: var(--font); font-weight: 700; }
+.route-table tbody tr:last-child td, .route-table tbody tr:last-child td { border-bottom: none; }
+.route-table .row-cheap { background: color-mix(in srgb, var(--success) 8%, transparent); }
+.route-table .row-cheap td:first-child::after { content: " · en ucuz"; font-size: 11px; color: var(--success); font-weight: 700; }
+
+.route-links { list-style: none; padding: 0; margin: 12px 0 0; display: flex; flex-direction: column; gap: 8px; }
+.route-links-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 10px; }
+.route-links a {
+  display: flex; align-items: center; justify-content: space-between; gap: 10px;
+  padding: 13px 16px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text);
+  text-decoration: none;
+  font-weight: 600; font-size: 14px;
+  box-shadow: var(--shadow-sm);
+  transition: border-color .15s ease, transform .12s ease, color .15s ease;
+}
+.route-links a:hover { border-color: color-mix(in srgb, var(--primary) 40%, transparent); color: var(--primary); transform: translateY(-1px); }
+.route-links a span { font-family: var(--mono); font-size: 12px; color: var(--text-muted); font-weight: 500; }
 
 /* ---------- Footer ---------- */
 .footer {

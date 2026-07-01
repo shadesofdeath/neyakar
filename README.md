@@ -32,11 +32,30 @@ Yerelde denemek için `index.html` dosyasını tarayıcıda açmanız yeterli (b
 ## Dosya yapısı
 
 ```
-index.html   → Arayüz (satır içi SVG ikon sistemi)
-style.css    → Tasarım sistemi, açık/koyu tema, responsive
-app.js       → Hesaplama mantığı ve etkileşimler
-cities.js    → 81 il koordinatları, rota ücret önerileri, yakıt varsayılanları
+index.html            → Arayüz (satır içi SVG ikon sistemi)
+style.css             → Tasarım sistemi, açık/koyu tema, responsive
+app.js                → Hesaplama, paylaşım, harita ve araç seçici mantığı
+cities.js             → 81 il koordinatları, rota ücret önerileri, yakıt varsayılanları
+vehicles.js           → Yaygın araç modelleri ve segmentlerin tahmini tüketimi
+rota/                 → Popüler rotalar için üretilen SEO sayfaları (otomatik)
+scripts/gen-routes.mjs→ Rota sayfalarını, sitemap.xml ve robots.txt'yi üreten script
+sitemap.xml, robots.txt → SEO
 ```
+
+## Harita ve araç seçici
+
+- **Rota haritası** — Şehirler arası modda sonuç ekranında güzergâh Leaflet + OpenStreetMap ile gösterilir (API anahtarı gerekmez).
+- **Araç seçici** — `vehicles.js` içindeki yaygın modeller/segmentlerden seçim yapınca yakıt türü ve tahmini tüketim otomatik dolar.
+
+## SEO rota sayfaları
+
+Popüler şehir çiftleri için statik landing sayfaları `scripts/gen-routes.mjs` ile üretilir. Şehir/ücret verisi değişince yeniden üretmek için:
+
+```
+node scripts/gen-routes.mjs
+```
+
+Bu komut `rota/*.html`, `rota/index.html`, `sitemap.xml` ve `robots.txt` dosyalarını günceller. Üretilen çıktı depoya commit'lenir; ayrı bir build adımı gerektirmez.
 
 ## 💰 Reklam (Google AdSense)
 

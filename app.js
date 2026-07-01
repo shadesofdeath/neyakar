@@ -103,6 +103,36 @@ function setFuel(fuel) {
   $("fuelPrice").value = d.price;
 }
 
+/* ---------- Araç seçici ---------- */
+function populateVehicleBrands() {
+  if (typeof VEHICLES === "undefined") return;
+  const brand = $("vehicleBrand");
+  brand.innerHTML =
+    `<option value="">Marka seçin…</option>` +
+    Object.keys(VEHICLES).map((b) => `<option value="${b}">${b}</option>`).join("");
+}
+
+function populateVehicleModels(brandName) {
+  const model = $("vehicleModel");
+  const list = VEHICLES[brandName];
+  if (!list) {
+    model.innerHTML = `<option value="">—</option>`;
+    model.disabled = true;
+    return;
+  }
+  model.innerHTML =
+    `<option value="">Model seçin…</option>` +
+    list.map((v, i) => `<option value="${i}">${v.model}</option>`).join("");
+  model.disabled = false;
+}
+
+function applyVehicle(brandName, index) {
+  const v = (VEHICLES[brandName] || [])[index];
+  if (!v) return;
+  setFuel(v.fuel); // yakıt türünü ayarlar (tüketim/fiyatı varsayılana çeker)
+  $("consumption").value = v.cons; // sonra tüketimi araca göre güncelle
+}
+
 /* ---------- Mesafe modu ---------- */
 function setMode(mode) {
   state.mode = mode;
@@ -175,6 +205,13 @@ function calculate() {
     persons,
     unit: FUEL_DEFAULTS[state.fuel].unit,
   });
+
+  // Rota haritası yalnızca şehirler modunda
+  if (state.mode === "cities") {
+    showRouteMap($("fromCity").value, $("toCity").value);
+  } else {
+    $("mapCard").classList.add("hidden");
+  }
 }
 
 const EMPTY_STATE_HTML =
@@ -258,6 +295,44 @@ function renderFuelCompare(distance) {
       );
     })
     .join("");
+}
+
+/* ---------- Rota haritası (Leaflet) ---------- */
+let _map = null;
+let _mapLayer = null;
+
+function showRouteMap(fromName, toName) {
+  const card = $("mapCard");
+  if (typeof L === "undefined") { card.classList.add("hidden"); return; } // Leaflet yüklenmedi
+  const from = CITIES.find((c) => c.name === fromName);
+  const to = CITIES.find((c) => c.name === toName);
+  if (!from || !to || from.name === to.name) { card.classList.add("hidden"); return; }
+
+  card.classList.remove("hidden");
+
+  if (!_map) {
+    _map = L.map("map", { scrollWheelZoom: false, zoomControl: true });
+    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+      maxZoom: 18,
+      attribution: "© OpenStreetMap katkıda bulunanlar",
+    }).addTo(_map);
+  }
+  if (_mapLayer) _mapLayer.remove();
+
+  const a = [from.lat, from.lon];
+  const b = [to.lat, to.lon];
+  const dot = (latlng, color) =>
+    L.circleMarker(latlng, { radius: 7, color: "#fff", weight: 2, fillColor: color, fillOpacity: 1 });
+
+  _mapLayer = L.layerGroup([
+    L.polyline([a, b], { color: "#4f46e5", weight: 4, opacity: 0.75, dashArray: "8 7" }),
+    dot(a, "#4f46e5").bindTooltip(from.name, { permanent: false }),
+    dot(b, "#0d9488").bindTooltip(to.name, { permanent: false }),
+  ]).addTo(_map);
+
+  _map.fitBounds([a, b], { padding: [36, 36] });
+  // Kart yeni görünür olduğunda boyutu düzelt
+  setTimeout(() => _map.invalidateSize(), 60);
 }
 
 /* ---------- Paylaşım & bağlantı ---------- */
@@ -401,6 +476,15 @@ function init() {
     b.addEventListener("click", () => setFuel(b.dataset.fuel))
   );
 
+  // Araç seçici
+  populateVehicleBrands();
+  $("vehicleBrand").addEventListener("change", (e) => {
+    populateVehicleModels(e.target.value);
+  });
+  $("vehicleModel").addEventListener("change", (e) => {
+    if (e.target.value !== "") applyVehicle($("vehicleBrand").value, +e.target.value);
+  });
+
   // Şehir değişimi
   $("fromCity").addEventListener("change", updateCityInfo);
   $("toCity").addEventListener("change", updateCityInfo);
@@ -437,6 +521,8 @@ function init() {
       setMode("cities");
       setFuel("benzin");
       populateCities();
+      $("vehicleBrand").value = "";
+      populateVehicleModels("");
       $("roundTrip").checked = false;
       $("tollCost").value = "";
       $("bridgeCost").value = "";
@@ -448,6 +534,7 @@ function init() {
       $("resultContent").classList.add("hidden");
       $("resultEmpty").classList.remove("hidden");
       $("resultEmpty").innerHTML = EMPTY_STATE_HTML;
+      $("mapCard").classList.add("hidden");
       lastShare = null;
       history.replaceState(null, "", location.pathname);
     }, 0);
