@@ -69,11 +69,11 @@ routes.sort((x, y) => x.from.localeCompare(y.from, "tr") || x.to.localeCompare(y
 
 /* --- ortak parçalar --- */
 const AD_HEAD = `  <script async
-    src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-XXXXXXXXXXXXXXXX"
+    src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3654703551763336"
     crossorigin="anonymous"></script>`;
 const AD_SLOT = `      <aside class="ad-slot" aria-label="Reklam">
         <span class="ad-label">Reklam</span>
-        <ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-XXXXXXXXXXXXXXXX" data-ad-slot="2222222222" data-ad-format="auto" data-full-width-responsive="true"></ins>
+        <ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-3654703551763336" data-ad-slot="2222222222" data-ad-format="auto" data-full-width-responsive="true"></ins>
       </aside>`;
 const AD_INIT = `  <script>(function(){document.querySelectorAll("ins.adsbygoogle").forEach(function(){try{(window.adsbygoogle=window.adsbygoogle||[]).push({});}catch(e){}});})();</script>
   <!-- Monetag In-Page Push -->

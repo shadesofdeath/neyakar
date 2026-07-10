@@ -67,13 +67,12 @@ Bu komut `rota/*.html`, `rota/index.html`, `sitemap.xml` ve `robots.txt` dosyala
 
 Site, statik olduğu için reklam için **Google AdSense** ile hazır gelir. İki reklam alanı vardır: hero bölümünün altında ve içeriğin altında (footer öncesi). Her ikisi de responsive'dir ve açık/koyu tema ile uyumludur.
 
-Etkinleştirmek için:
+Yayıncı kimliği **`ca-pub-3654703551763336`** olarak ayarlıdır (`<head>` içindeki script ve `<ins>` blokları). Reklamların gösterilmesi için:
 
-1. [adsense.google.com](https://adsense.google.com) üzerinden hesap açın ve sitenizi ekleyip onaylatın.
-2. `index.html` içinde geçen **`ca-pub-XXXXXXXXXXXXXXXX`** değerlerini kendi yayıncı kimliğinizle değiştirin (biri `<head>` içindeki script, ikisi de `<ins>` bloklarında — toplam 3 yer).
-3. Her `<ins class="adsbygoogle">` bloğundaki **`data-ad-slot`** değerini, AdSense panelinde oluşturduğunuz reklam biriminin slot numarasıyla güncelleyin.
+1. [adsense.google.com](https://adsense.google.com) üzerinden siteyi ekleyip onaylatın.
+2. Her `<ins class="adsbygoogle">` bloğundaki **`data-ad-slot`** değerini, AdSense panelinde oluşturduğunuz reklam biriminin slot numarasıyla güncelleyin.
 
-Yayıncı kimliği ayarlanmadığı sürece reklam alanları otomatik gizlenir; boş kutu görünmez. Böylece kurulum tamamlanana kadar arayüz temiz kalır.
+Slot ayarlanmadığı sürece reklam alanları otomatik gizlenir; boş kutu görünmez. Böylece kurulum tamamlanana kadar arayüz temiz kalır.
 
 > AdSense onayı için sitenizin canlı (ör. GitHub Pages üzerinde yayında) olması gerekir. AdSense politikaları gereği reklamlar yalnızca gerçek trafikte gösterilir.
 
